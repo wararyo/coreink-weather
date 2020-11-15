@@ -11,6 +11,7 @@
 #include "images/sunny.c"
 #include "images/sunnyandcloudy.c"
 
+Ink_Sprite dateSprite(&M5.M5Ink);
 Ink_Sprite weatherSprite(&M5.M5Ink);
 Ink_Sprite temperatureSprite(&M5.M5Ink);
 Ink_Sprite rainfallChanceSprite(&M5.M5Ink);
@@ -25,7 +26,10 @@ void setup() {
     Serial.begin(115200);
     WiFi.begin();
     //WiFi.begin("SSID","Key");
-    weatherSprite.creatSprite(46,36,108,96);
+    dateSprite.creatSprite(0,0,200,200);
+    weatherSprite.creatSprite(0,0,200,200);
+    temperatureSprite.creatSprite(0,0,200,200);
+    rainfallChanceSprite.creatSprite(0,0,200,200);
      
     while (WiFi.status() != WL_CONNECTED) {
         delay(1000);
@@ -99,6 +103,7 @@ void drawDayAfterTomorrowWeather() {
 
 void drawWeather(String infoWeather) {
     M5.M5Ink.clear();
+    M5.M5Ink.drawBuff((uint8_t *)background);
     weatherSprite.clear();
     
     DynamicJsonDocument doc(20000);
@@ -106,75 +111,61 @@ void drawWeather(String infoWeather) {
     String weather = doc["weather"];
     if (weather.indexOf("雨") != -1) {
         if (weather.indexOf("くもり") != -1) {
-            weatherSprite.drawBuff(0,0,108,96,rainyandcloudy);
+            weatherSprite.drawBuff(46,36,108,96,rainyandcloudy);
         } else {
-            weatherSprite.drawBuff(0,0,108,96,rainy);
+            weatherSprite.drawBuff(46,36,108,96,rainy);
         }
     } else if (weather.indexOf("晴") != -1) {
         if (weather.indexOf("くもり") != -1) {
-            weatherSprite.drawBuff(0,0,108,96,sunnyandcloudy);
+            weatherSprite.drawBuff(46,36,108,96,sunnyandcloudy);
         } else {
-            weatherSprite.drawBuff(0,0,108,96,sunny);
+            weatherSprite.drawBuff(46,36,108,96,sunny);
         }
     } else if (weather.indexOf("雪") != -1) {
-            weatherSprite.drawBuff(0,0,108,96,snow);
+            weatherSprite.drawBuff(46,36,108,96,snow);
     } else if (weather.indexOf("くもり") != -1) {
-            weatherSprite.drawBuff(0,0,108,96,cloudy);
+            weatherSprite.drawBuff(46,36,108,96,cloudy);
     }
-
-    //weatherSprite.drawString(0,0,filename.c_str(),&AsciiFont8x16);
     weatherSprite.pushSprite();
-  
-//    String filePath = pictureFolder+filename;
-//    M5.Lcd.drawJpgFile(SD,filePath.c_str());
-//  
-//    String maxTemperature = doc["temperature"]["range"][0]["content"];
-//    String minTemperature = doc["temperature"]["range"][1]["content"];
-//    drawTemperature(maxTemperature, minTemperature);
-//  
-//    String railfallchance0_6 = doc["rainfallchance"]["period"][0]["content"];
-//    String railfallchance6_12 = doc["rainfallchance"]["period"][1]["content"];
-//    String railfallchance12_18 = doc["rainfallchance"]["period"][2]["content"];
-//    String railfallchance18_24 = doc["rainfallchance"]["period"][3]["content"];
-//    drawRainfallChancce(railfallchance0_6, railfallchance6_12, railfallchance12_18, railfallchance18_24);
-//  
-//    drawDate(doc["date"]);
+ 
+   String maxTemperature = doc["temperature"]["range"][0]["content"];
+   String minTemperature = doc["temperature"]["range"][1]["content"];
+   drawTemperature(maxTemperature, minTemperature);
+ 
+    int rainfallChances[] = {doc["rainfallchance"]["period"][0]["content"].as<String>(), //as<int>()だとなぜか0が返ってくる
+        doc["rainfallchance"]["period"][1]["content"].as<String>(),
+        doc["rainfallchance"]["period"][2]["content"].as<String>(),
+        doc["rainfallchance"]["period"][3]["content"].as<String>()};
+
+    int maxRainfallChance = -255;
+    int minRainfallChance = 255;
+
+    for(int item : rainfallChances) {
+        if(item > maxRainfallChance) maxRainfallChance = item;
+        if(item < minRainfallChance) minRainfallChance = item;
+    }
+    
+   drawRainfallChance(String(maxRainfallChance),String(minRainfallChance));
+ 
+   drawDate(doc["date"]);
 }
 
-//void drawTemperature(String maxTemperature, String minTemperature) {
-//    M5.Lcd.setTextColor(RED);
-//    M5.Lcd.setTextSize(4);
-//    M5.Lcd.setCursor(15,80);
-//    M5.Lcd.print(maxTemperature);
-//  
-//    M5.Lcd.setTextColor(WHITE);
-//    M5.Lcd.setCursor(70,80);
-//    M5.Lcd.print("|");
-//  
-//    M5.Lcd.setTextColor(BLUE);
-//    M5.Lcd.setCursor(105,80);
-//    M5.Lcd.print(minTemperature);
-//}
-//
-//void drawRainfallChancce(String rfc0_6, String rfc6_12, String rfc12_18, String rfc18_24) {
-//    M5.Lcd.setTextSize(3);
-//    M5.Lcd.setTextColor(WHITE);
-//    M5.Lcd.setCursor(27,200);
-//    M5.Lcd.print(rfc0_6);
-//    
-//    M5.Lcd.setCursor(92,200);
-//    M5.Lcd.print(rfc6_12);
-//  
-//    M5.Lcd.setCursor(165,200);
-//    M5.Lcd.print(rfc12_18);
-//  
-//    M5.Lcd.setCursor(245,200);
-//    M5.Lcd.print(rfc18_24);
-//}
-//
-//void drawDate(String date) {
-//    M5.Lcd.setTextColor(WHITE);
-//    M5.Lcd.setTextSize(3);
-//    M5.Lcd.setCursor(10,10);
-//    M5.Lcd.print(date);
-//}
+void drawTemperature(String maxTemperature, String minTemperature) {
+    temperatureSprite.clear();
+    temperatureSprite.drawString(60,147,maxTemperature.c_str(),&AsciiFont8x16);
+    temperatureSprite.drawString(60,169,minTemperature.c_str(),&AsciiFont8x16);
+    temperatureSprite.pushSprite();
+}
+
+void drawRainfallChance(String maxRainfallChance,String minRainfallChance) {
+    rainfallChanceSprite.clear();
+    rainfallChanceSprite.drawString(142,147,maxRainfallChance.c_str(),&AsciiFont8x16);
+    rainfallChanceSprite.drawString(142,169,minRainfallChance.c_str(),&AsciiFont8x16);
+    rainfallChanceSprite.pushSprite();
+}
+
+void drawDate(String date) {
+    dateSprite.clear();
+    dateSprite.drawString(60,16,date.c_str(),&AsciiFont8x16);
+    dateSprite.pushSprite();
+}
