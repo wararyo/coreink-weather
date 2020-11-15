@@ -6,7 +6,7 @@ M5Stack CoreInkで天気が表示できます。
 
 ## これから開発する機能
 
-* 天気の自動更新
+* 天気の定期更新
 
 ## 参考
 
@@ -15,3 +15,7 @@ M5Stack CoreInkで天気が表示できます。
 ## 使用ツール
 
 [coreink-image-converter](https://github.com/wararyo/coreink-image-converter)
+
+## Credits
+
+[Weather Icons](https://erikflowers.github.io/weather-icons/)
