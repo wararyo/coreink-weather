@@ -2,7 +2,6 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include "M5CoreInk.h"
-#include "esp_adc_cal.h"
 #include "images/background.c"
 #include "images/cloudy.c"
 #include "images/rainy.c"
@@ -26,7 +25,7 @@ void setup() {
     Serial.begin(115200);
     WiFi.begin();
     //WiFi.begin("SSID","Key");
-    dateSprite.creatSprite(0,0,200,200);
+    dateSprite.creatSprite(0,0,200,200); // typo of "create"
     weatherSprite.creatSprite(0,0,200,200);
     temperatureSprite.creatSprite(0,0,200,200);
     rainfallChanceSprite.creatSprite(0,0,200,200);
@@ -42,23 +41,25 @@ void setup() {
 }
  
 void loop() {
-    delay(1);
-    if (M5.BtnUP.wasPressed()) {
-        drawTodayWeather(); 
-    }
-    if (M5.BtnMID.wasPressed()) {
-        drawTomorrowWeather();
-    }
-    if (M5.BtnDOWN.wasPressed()) {
-        drawDayAfterTomorrowWeather();
-    }
-    if( M5.BtnPWR.wasPressed())
-    {
-        Serial.printf("Btn %d was pressed \r\n",BUTTON_EXT_PIN);
-        digitalWrite(LED_EXT_PIN,LOW);
-        M5.PowerDown();
-    }
-    M5.update();
+    delay(1000);
+    // if (M5.BtnUP.wasPressed()) {
+    //     drawTodayWeather(); 
+    // }
+    // if (M5.BtnMID.wasPressed()) {
+    //     drawTomorrowWeather();
+    // }
+    // if (M5.BtnDOWN.wasPressed()) {
+    //     drawDayAfterTomorrowWeather();
+    // }
+    // if( M5.BtnPWR.wasPressed())
+    // {
+    //     Serial.printf("Btn %d was pressed \r\n",BUTTON_EXT_PIN);
+    //     digitalWrite(LED_EXT_PIN,LOW);
+    //     M5.PowerDown();
+    // }
+    // M5.update();
+    digitalWrite(LED_EXT_PIN,LOW);
+    M5.shutdown(3600);
 }
 
 DynamicJsonDocument getJson() {
@@ -132,10 +133,10 @@ void drawWeather(String infoWeather) {
    String minTemperature = doc["temperature"]["range"][1]["content"];
    drawTemperature(maxTemperature, minTemperature);
  
-    int rainfallChances[] = {doc["rainfallchance"]["period"][0]["content"].as<String>(), //as<int>()だとなぜか0が返ってくる
-        doc["rainfallchance"]["period"][1]["content"].as<String>(),
-        doc["rainfallchance"]["period"][2]["content"].as<String>(),
-        doc["rainfallchance"]["period"][3]["content"].as<String>()};
+    int rainfallChances[] = {doc["rainfallchance"]["period"][0]["content"].as<int>(),
+        doc["rainfallchance"]["period"][1]["content"].as<int>(),
+        doc["rainfallchance"]["period"][2]["content"].as<int>(),
+        doc["rainfallchance"]["period"][3]["content"].as<int>()};
 
     int maxRainfallChance = -255;
     int minRainfallChance = 255;
@@ -167,5 +168,13 @@ void drawRainfallChance(String maxRainfallChance,String minRainfallChance) {
 void drawDate(String date) {
     dateSprite.clear();
     dateSprite.drawString(60,16,date.c_str(),&AsciiFont8x16);
+    
+    //Test¥
+    RTC_DateTypeDef RTCdate;
+    RTC_TimeTypeDef RTCtime;
+    M5.rtc.GetTime(&RTCtime);
+    M5.rtc.GetData(&RTCdate); // typo of "Date"
+    dateSprite.drawString(0,184,(String("Updated at ") + String(RTCdate.Month)+String("/")+String(RTCdate.Date) + String(" ") + String(RTCtime.Hours)+String(":")+String(RTCtime.Minutes)).c_str(),&AsciiFont8x16);
+
     dateSprite.pushSprite();
 }
