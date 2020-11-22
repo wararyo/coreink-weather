@@ -18,9 +18,9 @@ float getBatVoltage()
 int getBatCapacity(){
     // Simple implementation
     // see https://www.maximintegrated.com/jp/design/technical-documents/app-notes/3/3958.html
-    // 4.02 = 100%, 3.80 = 0%
-    const float maxVoltage = 4.02;
-    const float minVoltage = 3.80;
+    // 4.15 = 100%, 3.40 = 0%
+    const float maxVoltage = 4.15;
+    const float minVoltage = 3.40;
     int cap = (int)(100.0 * (getBatVoltage() - minVoltage) / (maxVoltage - minVoltage));
     if(cap > 100){
       cap = 100;
