@@ -18,8 +18,22 @@
 
 #define LOW_BATTERY_THRETHOLD 20 // バッテリー残量低下と判断するバッテリー残量 (0 - 100)
 
+// この時刻より前は今日の時刻を表示し、この時刻以降は明日の時刻を表示する
+const int8_t boundaryOfDate = 18;
+
+// WiFi接続情報を指定する場合は有効にする 無効の場合は前回接続したWiFiの情報を使用
+// #define WIFI_SSID "****"
+// #define WIFI_PASS "****"
+
+// NTPによる時刻補正を常に行う場合は有効にする 無効の場合でもEXTボタンを押しながら起動することで時刻補正を行う
+// #define ADJUST_RTC_NTP
+
 const char* endpoint = "https://www.drk7.jp/weather/json/13.js";
 const char* region = "東京地方";
+
+/*
+// --------------
+*/
 
 Ink_Sprite dateSprite(&M5.M5Ink);
 Ink_Sprite weatherSprite(&M5.M5Ink);
@@ -38,6 +52,7 @@ void setup() {
     temperatureSprite.creatSprite(0,0,200,200);
     rainfallChanceSprite.creatSprite(0,0,200,200);
 
+    // バッテリー残量が低下している場合はそのことを表示し、自動更新はしない
     if(getBatCapacity() < LOW_BATTERY_THRETHOLD) {
         drawLowbattery();
         delay(1000);
@@ -46,8 +61,18 @@ void setup() {
         return;
     }
 
+    // EXTが押されている時は時刻合わせをする
+    if(M5.BtnEXT.wasPressed()) adjustRTC();
+
+#ifdef ADJUST_RTC_NTP
+    adjustRTC();
+#endif
+
+#ifdef WIFI_SSID
+    WiFi.begin(WIFI_SSID,WIFI_PASS);
+#else
     WiFi.begin();
-    //WiFi.begin("SSID","Key");
+#endif
      
     while (WiFi.status() != WL_CONNECTED) {
         delay(1000);
@@ -57,7 +82,13 @@ void setup() {
     weatherInfo = getJson();
     WiFi.disconnect();
 
-    drawTodayWeather(); 
+    // 18時以降は明日の天気を表示 それ以外は今日の天気を表示
+    RTC_DateTypeDef RTCdate;
+    RTC_TimeTypeDef RTCtime;
+    M5.rtc.GetTime(&RTCtime);
+    M5.rtc.GetData(&RTCdate); // typo of "Date"
+    if(RTCtime.Hours >= boundaryOfDate) drawWeatherOfNextDay(RTCdate);
+    else drawWeatherOfDay(RTCdate);
 }
  
 void loop() {
@@ -91,19 +122,39 @@ String createJson(String jsonString){
     return jsonString.substring(0,jsonString.length()-2);
 }
 
-void drawTodayWeather() {
-    String today = weatherInfo["pref"]["area"][region]["info"][0];
-    drawWeather(today);
+String dateToString(RTC_Date date) {
+    return String(date.Year)+String("/")+String(date.Month)+String("/")+String(date.Date);
 }
 
-void drawTomorrowWeather() {
-    String tomorrow = weatherInfo["pref"]["area"][region]["info"][1];
-    drawWeather(tomorrow);
+String dateTimeToString(RTC_DateTypeDef RTCdate, RTC_TimeTypeDef RTCtime) {
+    return String(RTCdate.Month)+String("/")+String(RTCdate.Date) + String(" ") + String(RTCtime.Hours)+String(":")+String(RTCtime.Minutes);
 }
 
-void drawDayAfterTomorrowWeather() {
-    String dayAfterTomorrow = weatherInfo["pref"]["area"][region]["info"][2];
-    drawWeather(dayAfterTomorrow);
+void drawWeatherOfDay(RTC_Date date) {
+    JsonArray weatherArray = weatherInfo["pref"]["area"][region]["info"];
+
+    // Dateと合致する日の天気がJson内にあればそれを描画
+    for(JsonVariant v : weatherArray) {
+        if(v["date"] == dateToString(date)) {
+            drawWeather(v.as<String>());
+            break;
+        }
+    }
+}
+
+// RTC_Dateにおいて次の日の日付を計算するのが難しいためこの方法を使用
+void drawWeatherOfNextDay(RTC_Date date) {
+    JsonArray weatherArray = weatherInfo["pref"]["area"][region]["info"];
+
+    // Dateと合致する日の天気がJson内にあればそれの次の要素を描画
+    for(int i = 0; i < weatherArray.size(); i++) {
+        JsonVariant v = weatherArray[i];
+        if(v["date"] == dateToString(date) && (i+1) < weatherArray.size()) {
+            v = weatherArray[i+1];
+            drawWeather(v.as<String>());
+            break;
+        }
+    }
 }
 
 void drawWeather(String infoWeather) {
@@ -189,10 +240,6 @@ void drawDate(String date) {
     dateSprite.pushSprite();
 }
 
-String dateTimeToString(RTC_DateTypeDef RTCdate, RTC_TimeTypeDef RTCtime) {
-    return String(RTCdate.Month)+String("/")+String(RTCdate.Date) + String(" ") + String(RTCtime.Hours)+String(":")+String(RTCtime.Minutes);
-}
-
 void drawLowbattery(){
     M5.M5Ink.clear();
     M5.M5Ink.drawBuff((uint8_t *)image_background);
@@ -200,4 +247,8 @@ void drawLowbattery(){
     weatherSprite.drawString(56,16,"Low Battery",&AsciiFont8x16);
     weatherSprite.drawBuff(46,36,108,96,image_lowbattery);
     weatherSprite.pushSprite();
+}
+
+void adjustRTC() {
+    // 未実装
 }
