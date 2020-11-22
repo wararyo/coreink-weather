@@ -157,15 +157,15 @@ void drawWeather(String infoWeather) {
 
 void drawTemperature(String maxTemperature, String minTemperature) {
     temperatureSprite.clear();
-    temperatureSprite.drawString(60,147,maxTemperature.c_str(),&AsciiFont8x16);
-    temperatureSprite.drawString(60,169,minTemperature.c_str(),&AsciiFont8x16);
+    temperatureSprite.drawString(63,145,maxTemperature.c_str(),&AsciiFont8x16);
+    temperatureSprite.drawString(63,168,minTemperature.c_str(),&AsciiFont8x16);
     temperatureSprite.pushSprite();
 }
 
 void drawRainfallChance(String maxRainfallChance,String minRainfallChance) {
     rainfallChanceSprite.clear();
-    rainfallChanceSprite.drawString(142,147,maxRainfallChance.c_str(),&AsciiFont8x16);
-    rainfallChanceSprite.drawString(142,169,minRainfallChance.c_str(),&AsciiFont8x16);
+    rainfallChanceSprite.drawString(142,145,maxRainfallChance.c_str(),&AsciiFont8x16);
+    rainfallChanceSprite.drawString(142,168,minRainfallChance.c_str(),&AsciiFont8x16);
     rainfallChanceSprite.pushSprite();
 }
 
