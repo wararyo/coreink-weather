@@ -2,6 +2,8 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include "M5CoreInk.h"
+
+#include "Battery.h"
 #include "images/background.c"
 #include "images/cloudy.c"
 #include "images/rainy.c"
@@ -169,12 +171,20 @@ void drawDate(String date) {
     dateSprite.clear();
     dateSprite.drawString(60,16,date.c_str(),&AsciiFont8x16);
     
-    //Test¥
-    RTC_DateTypeDef RTCdate;
-    RTC_TimeTypeDef RTCtime;
-    M5.rtc.GetTime(&RTCtime);
-    M5.rtc.GetData(&RTCdate); // typo of "Date"
-    dateSprite.drawString(0,184,(String("Updated at ") + String(RTCdate.Month)+String("/")+String(RTCdate.Date) + String(" ") + String(RTCtime.Hours)+String(":")+String(RTCtime.Minutes)).c_str(),&AsciiFont8x16);
+    //Draw last updated time
+    // RTC_DateTypeDef RTCdate;
+    // RTC_TimeTypeDef RTCtime;
+    // M5.rtc.GetTime(&RTCtime);
+    // M5.rtc.GetData(&RTCdate); // typo of "Date"
+    // String nowString = dateTimeToString(RTCdate,RTCtime);
+    // dateSprite.drawString(0,184,nowString.c_str(),&AsciiFont8x16);
+
+    //Draw battery capacity
+    dateSprite.drawString(0,0,(String(getBatCapacity()) + String("%")).c_str(),&AsciiFont8x16);
 
     dateSprite.pushSprite();
+}
+
+String dateTimeToString(RTC_DateTypeDef RTCdate, RTC_TimeTypeDef RTCtime) {
+    return String("Updated at ") + String(RTCdate.Month)+String("/")+String(RTCdate.Date) + String(" ") + String(RTCtime.Hours)+String(":")+String(RTCtime.Minutes);
 }
