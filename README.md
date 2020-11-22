@@ -4,9 +4,13 @@
 
 M5Stack CoreInkで天気が表示できます。
 
+developブランチでは予定していたほぼ全ての機能が完成していますが、  
+[m5stack/M5-CoreInk](https://github.com/m5stack/M5-CoreInk)から最新のCoreInkライブラリを入手する必要があります。  
+公式より新バージョンがリリースされ次第 masterブランチへ取り込みます。
+
 ## これから開発する機能
 
-* 天気の定期更新
+* 天気の定期更新 (developブランチにて実装済み)
 
 ## 参考
 
