@@ -4,13 +4,13 @@
 #include "M5CoreInk.h"
 
 #include "Battery.h"
-#include "images/background.c"
-#include "images/cloudy.c"
-#include "images/rainy.c"
-#include "images/rainyandcloudy.c"
-#include "images/snow.c"
-#include "images/sunny.c"
-#include "images/sunnyandcloudy.c"
+#include "images/background.h"
+#include "images/cloudy.h"
+#include "images/rainy.h"
+#include "images/rainyandcloudy.h"
+#include "images/snow.h"
+#include "images/sunny.h"
+#include "images/sunnyandcloudy.h"
 
 #define SHOW_LAST_UPDATED false // 天気を更新した時刻を表示するかどうか
 #define SHOW_BATTERY_CAPACITY true // 電池残量を表示するかどうか
@@ -110,7 +110,7 @@ void drawDayAfterTomorrowWeather() {
 
 void drawWeather(String infoWeather) {
     M5.M5Ink.clear();
-    M5.M5Ink.drawBuff((uint8_t *)background);
+    M5.M5Ink.drawBuff((uint8_t *)image_background);
     weatherSprite.clear();
     
     DynamicJsonDocument doc(20000);
@@ -118,20 +118,20 @@ void drawWeather(String infoWeather) {
     String weather = doc["weather"];
     if (weather.indexOf("雨") != -1) {
         if (weather.indexOf("くもり") != -1) {
-            weatherSprite.drawBuff(46,36,108,96,rainyandcloudy);
+            weatherSprite.drawBuff(46,36,108,96,image_rainyandcloudy);
         } else {
-            weatherSprite.drawBuff(46,36,108,96,rainy);
+            weatherSprite.drawBuff(46,36,108,96,image_rainy);
         }
     } else if (weather.indexOf("晴") != -1) {
         if (weather.indexOf("くもり") != -1) {
-            weatherSprite.drawBuff(46,36,108,96,sunnyandcloudy);
+            weatherSprite.drawBuff(46,36,108,96,image_sunnyandcloudy);
         } else {
-            weatherSprite.drawBuff(46,36,108,96,sunny);
+            weatherSprite.drawBuff(46,36,108,96,image_sunny);
         }
     } else if (weather.indexOf("雪") != -1) {
-            weatherSprite.drawBuff(46,36,108,96,snow);
+            weatherSprite.drawBuff(46,36,108,96,image_snow);
     } else if (weather.indexOf("くもり") != -1) {
-            weatherSprite.drawBuff(46,36,108,96,cloudy);
+            weatherSprite.drawBuff(46,36,108,96,image_cloudy);
     }
     weatherSprite.pushSprite();
  
