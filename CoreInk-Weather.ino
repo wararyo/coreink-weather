@@ -11,9 +11,12 @@
 #include "images/snow.h"
 #include "images/sunny.h"
 #include "images/sunnyandcloudy.h"
+#include "images/lowbattery.h"
 
 #define SHOW_LAST_UPDATED false // 天気を更新した時刻を表示するかどうか
 #define SHOW_BATTERY_CAPACITY true // 電池残量を表示するかどうか
+
+#define LOW_BATTERY_THRETHOLD 20 // バッテリー残量低下と判断するバッテリー残量 (0 - 100)
 
 const char* endpoint = "https://www.drk7.jp/weather/json/13.js";
 const char* region = "東京地方";
@@ -29,12 +32,22 @@ void setup() {
     M5.begin();
     Wire.begin();
     Serial.begin(115200);
-    WiFi.begin();
-    //WiFi.begin("SSID","Key");
+
     dateSprite.creatSprite(0,0,200,200); // typo of "create"
     weatherSprite.creatSprite(0,0,200,200);
     temperatureSprite.creatSprite(0,0,200,200);
     rainfallChanceSprite.creatSprite(0,0,200,200);
+
+    if(getBatCapacity() < LOW_BATTERY_THRETHOLD) {
+        drawLowbattery();
+        delay(1000);
+        digitalWrite(LED_EXT_PIN,LOW);
+        M5.shutdown();
+        return;
+    }
+
+    WiFi.begin();
+    //WiFi.begin("SSID","Key");
      
     while (WiFi.status() != WL_CONNECTED) {
         delay(1000);
@@ -43,27 +56,12 @@ void setup() {
     Serial.println("Connected to the WiFi network");
     weatherInfo = getJson();
     WiFi.disconnect();
+
     drawTodayWeather(); 
 }
  
 void loop() {
     delay(1000);
-    // if (M5.BtnUP.wasPressed()) {
-    //     drawTodayWeather(); 
-    // }
-    // if (M5.BtnMID.wasPressed()) {
-    //     drawTomorrowWeather();
-    // }
-    // if (M5.BtnDOWN.wasPressed()) {
-    //     drawDayAfterTomorrowWeather();
-    // }
-    // if( M5.BtnPWR.wasPressed())
-    // {
-    //     Serial.printf("Btn %d was pressed \r\n",BUTTON_EXT_PIN);
-    //     digitalWrite(LED_EXT_PIN,LOW);
-    //     M5.PowerDown();
-    // }
-    // M5.update();
     digitalWrite(LED_EXT_PIN,LOW);
     M5.shutdown(3600);
 }
@@ -193,4 +191,13 @@ void drawDate(String date) {
 
 String dateTimeToString(RTC_DateTypeDef RTCdate, RTC_TimeTypeDef RTCtime) {
     return String(RTCdate.Month)+String("/")+String(RTCdate.Date) + String(" ") + String(RTCtime.Hours)+String(":")+String(RTCtime.Minutes);
+}
+
+void drawLowbattery(){
+    M5.M5Ink.clear();
+    M5.M5Ink.drawBuff((uint8_t *)image_background);
+    weatherSprite.clear();
+    weatherSprite.drawString(56,16,"Low Battery",&AsciiFont8x16);
+    weatherSprite.drawBuff(46,36,108,96,image_lowbattery);
+    weatherSprite.pushSprite();
 }
