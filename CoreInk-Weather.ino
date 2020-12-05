@@ -123,7 +123,10 @@ String createJson(String jsonString){
 }
 
 String dateToString(RTC_Date date) {
-    return String(date.Year)+String("/")+String(date.Month)+String("/")+String(date.Date);
+    char monthStr[5], dayStr[5];
+    sprintf(monthStr, "%02d", date.Month);
+    sprintf(dayStr, "%02d", date.Date);    
+    return String(date.Year)+String("/")+String(monthStr)+String("/")+String(dayStr);
 }
 
 String dateTimeToString(RTC_DateTypeDef RTCdate, RTC_TimeTypeDef RTCtime) {
