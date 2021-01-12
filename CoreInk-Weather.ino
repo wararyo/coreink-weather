@@ -27,7 +27,7 @@ const int8_t boundaryOfDate = 18;
 // #define WIFI_PASS "****"
 
 // NTPによる時刻補正を常に行う場合は有効にする 無効の場合でもEXTボタンを押しながら起動することで時刻補正を行う
-#define ADJUST_RTC_NTP
+// #define ADJUST_RTC_NTP
 
 const char* endpoint = "https://www.drk7.jp/weather/json/13.js";
 const char* region = "東京地方";
