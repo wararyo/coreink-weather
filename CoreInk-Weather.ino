@@ -82,11 +82,12 @@ void setup() {
     Serial.println("Connected to the WiFi network");
 
     // EXTが押されている時は時刻合わせをする
-    if(M5.BtnEXT.wasPressed()) adjustRTC();
-
+    if(M5.BtnEXT.isPressed()) adjustRTC();
+    else {
 #ifdef ADJUST_RTC_NTP
-    adjustRTC();
+        adjustRTC();
 #endif
+    }
 
     weatherInfo = getJson();
     WiFi.disconnect();
@@ -262,6 +263,7 @@ void drawLowbattery(){
 }
 
 void adjustRTC() {
+    Serial.println("RTC adjusting...");
     configTime(0, 0, NTP_SERVER);
     setenv("TZ", TZ_INFO, 1);
     delay(1500); // wait to adjust time by NTP server 
