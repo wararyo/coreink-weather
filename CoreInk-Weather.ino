@@ -12,6 +12,7 @@
 #include "images/sunny.h"
 #include "images/sunnyandcloudy.h"
 #include "images/lowbattery.h"
+#include "time.h"
 
 #define SHOW_LAST_UPDATED false // 天気を更新した時刻を表示するかどうか
 #define SHOW_BATTERY_CAPACITY true // 電池残量を表示するかどうか
@@ -30,6 +31,13 @@ const int8_t boundaryOfDate = 18;
 
 const char* endpoint = "https://www.drk7.jp/weather/json/13.js";
 const char* region = "東京地方";
+
+const char* NTP_SERVER = "ntp.nict.jp";
+const char* TZ_INFO    = "JST-9";
+tm timeinfo;
+time_t now;
+RTC_TimeTypeDef RTCtime, RTCTimeSave;
+RTC_DateTypeDef RTCDate;
 
 /*
 // --------------
@@ -61,13 +69,6 @@ void setup() {
         return;
     }
 
-    // EXTが押されている時は時刻合わせをする
-    if(M5.BtnEXT.wasPressed()) adjustRTC();
-
-#ifdef ADJUST_RTC_NTP
-    adjustRTC();
-#endif
-
 #ifdef WIFI_SSID
     WiFi.begin(WIFI_SSID,WIFI_PASS);
 #else
@@ -79,6 +80,14 @@ void setup() {
         Serial.println("Connecting to WiFi..");
     }
     Serial.println("Connected to the WiFi network");
+
+    // EXTが押されている時は時刻合わせをする
+    if(M5.BtnEXT.wasPressed()) adjustRTC();
+
+#ifdef ADJUST_RTC_NTP
+    adjustRTC();
+#endif
+
     weatherInfo = getJson();
     WiFi.disconnect();
 
@@ -253,5 +262,24 @@ void drawLowbattery(){
 }
 
 void adjustRTC() {
-    // 未実装
+    configTime(0, 0, NTP_SERVER);
+    setenv("TZ", TZ_INFO, 1);
+    delay(1500); // wait to adjust time by NTP server 
+    time(&now);
+    localtime_r(&now, &timeinfo);
+    // print adjusted time to serial
+    char time_output[30];
+    strftime(time_output, 30, "NTP: %a  %d-%m-%y %T", localtime(&now));
+    Serial.println(time_output);
+    
+    // save to RTC
+    RTCtime.Minutes = timeinfo.tm_min;
+    RTCtime.Seconds = timeinfo.tm_sec;
+    RTCtime.Hours = timeinfo.tm_hour;
+    RTCDate.Year = timeinfo.tm_year+1900;
+    RTCDate.Month = timeinfo.tm_mon+1;
+    RTCDate.Date = timeinfo.tm_mday;
+    RTCDate.WeekDay = timeinfo.tm_wday;
+    M5.rtc.SetTime(&RTCtime);
+    M5.rtc.SetData(&RTCDate);
 }
