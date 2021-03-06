@@ -34,10 +34,6 @@ const char* region = "東京地方";
 
 const char* NTP_SERVER = "ntp.nict.jp";
 const char* TZ_INFO    = "JST-9";
-tm timeinfo;
-time_t now;
-RTC_TimeTypeDef RTCtime, RTCTimeSave;
-RTC_DateTypeDef RTCDate;
 
 /*
 // --------------
@@ -93,12 +89,12 @@ void setup() {
     WiFi.disconnect();
 
     // 18時以降は明日の天気を表示 それ以外は今日の天気を表示
-    RTC_DateTypeDef RTCdate;
-    RTC_TimeTypeDef RTCtime;
-    M5.rtc.GetTime(&RTCtime);
-    M5.rtc.GetData(&RTCdate); // typo of "Date"
-    if(RTCtime.Hours >= boundaryOfDate) drawWeatherOfNextDay(RTCdate);
-    else drawWeatherOfDay(RTCdate);
+    RTC_DateTypeDef RtcDate;
+    RTC_TimeTypeDef RtcTime;
+    M5.rtc.GetTime(&RtcTime);
+    M5.rtc.GetData(&RtcDate); // typo of "Date"
+    if(RtcTime.Hours >= boundaryOfDate) drawWeatherOfNextDay(RtcDate);
+    else drawWeatherOfDay(RtcDate);
 }
  
 void loop() {
@@ -139,8 +135,8 @@ String dateToString(RTC_Date date) {
     return String(date.Year)+String("/")+String(monthStr)+String("/")+String(dayStr);
 }
 
-String dateTimeToString(RTC_DateTypeDef RTCdate, RTC_TimeTypeDef RTCtime) {
-    return String(RTCdate.Month)+String("/")+String(RTCdate.Date) + String(" ") + String(RTCtime.Hours)+String(":")+String(RTCtime.Minutes);
+String dateTimeToString(RTC_DateTypeDef RtcDate, RTC_TimeTypeDef RtcTime) {
+    return String(RtcDate.Month)+String("/")+String(RtcDate.Date) + String(" ") + String(RtcTime.Hours)+String(":")+String(RtcTime.Minutes);
 }
 
 void drawWeatherOfDay(RTC_Date date) {
@@ -239,11 +235,11 @@ void drawDate(String date) {
     
     // Draw last updated time
     if(SHOW_LAST_UPDATED){
-        RTC_DateTypeDef RTCdate;
-        RTC_TimeTypeDef RTCtime;
-        M5.rtc.GetTime(&RTCtime);
-        M5.rtc.GetData(&RTCdate); // typo of "Date"
-        String nowString = String("Updated: ") + dateTimeToString(RTCdate,RTCtime);
+        RTC_DateTypeDef RtcDate;
+        RTC_TimeTypeDef RtcTime;
+        M5.rtc.GetTime(&RtcTime);
+        M5.rtc.GetData(&RtcDate); // typo of "Date"
+        String nowString = String("Updated: ") + dateTimeToString(RtcDate,RtcTime);
         dateSprite.drawString(0,184,nowString.c_str(),&AsciiFont8x16);
     }
 
@@ -264,6 +260,12 @@ void drawLowbattery(){
 
 void adjustRTC() {
     Serial.println("RTC adjusting...");
+
+    tm timeinfo;
+    time_t now;
+    RTC_TimeTypeDef RtcTime;
+    RTC_DateTypeDef RtcDate;
+
     configTime(0, 0, NTP_SERVER);
     setenv("TZ", TZ_INFO, 1);
     delay(1500); // wait to adjust time by NTP server 
@@ -275,13 +277,13 @@ void adjustRTC() {
     Serial.println(time_output);
     
     // save to RTC
-    RTCtime.Minutes = timeinfo.tm_min;
-    RTCtime.Seconds = timeinfo.tm_sec;
-    RTCtime.Hours = timeinfo.tm_hour;
-    RTCDate.Year = timeinfo.tm_year+1900;
-    RTCDate.Month = timeinfo.tm_mon+1;
-    RTCDate.Date = timeinfo.tm_mday;
-    RTCDate.WeekDay = timeinfo.tm_wday;
-    M5.rtc.SetTime(&RTCtime);
-    M5.rtc.SetData(&RTCDate);
+    RtcTime.Minutes = timeinfo.tm_min;
+    RtcTime.Seconds = timeinfo.tm_sec;
+    RtcTime.Hours = timeinfo.tm_hour;
+    RtcDate.Year = timeinfo.tm_year+1900;
+    RtcDate.Month = timeinfo.tm_mon+1;
+    RtcDate.Date = timeinfo.tm_mday;
+    RtcDate.WeekDay = timeinfo.tm_wday;
+    M5.rtc.SetTime(&RtcTime);
+    M5.rtc.SetData(&RtcDate);
 }
