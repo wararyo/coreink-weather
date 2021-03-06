@@ -1,9 +1,10 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
-#include "M5CoreInk.h"
+#include <M5CoreInk.h>
 
 #include "Battery.h"
+#include "DateTimeUtil.h"
 #include "images/background.h"
 #include "images/cloudy.h"
 #include "images/rainy.h"
@@ -14,7 +15,7 @@
 #include "images/lowbattery.h"
 #include "time.h"
 
-#define SHOW_LAST_UPDATED false // 天気を更新した時刻を表示するかどうか
+#define SHOW_LAST_UPDATED true // 天気を更新した時刻を表示するかどうか
 #define SHOW_BATTERY_CAPACITY true // 電池残量を表示するかどうか
 
 #define LOW_BATTERY_THRETHOLD 20 // バッテリー残量低下と判断するバッテリー残量 (0 - 100)
@@ -100,7 +101,7 @@ void setup() {
 void loop() {
     delay(1000);
     digitalWrite(LED_EXT_PIN,LOW);
-    M5.shutdown(3600);
+    M5.shutdown(10800);
 }
 
 DynamicJsonDocument getJson() {
@@ -126,17 +127,6 @@ DynamicJsonDocument getJson() {
 String createJson(String jsonString){
     jsonString.replace("drk7jpweather.callback(","");
     return jsonString.substring(0,jsonString.length()-2);
-}
-
-String dateToString(RTC_Date date) {
-    char monthStr[5], dayStr[5];
-    sprintf(monthStr, "%02d", date.Month);
-    sprintf(dayStr, "%02d", date.Date);    
-    return String(date.Year)+String("/")+String(monthStr)+String("/")+String(dayStr);
-}
-
-String dateTimeToString(RTC_DateTypeDef RtcDate, RTC_TimeTypeDef RtcTime) {
-    return String(RtcDate.Month)+String("/")+String(RtcDate.Date) + String(" ") + String(RtcTime.Hours)+String(":")+String(RtcTime.Minutes);
 }
 
 void drawWeatherOfDay(RTC_Date date) {
@@ -277,13 +267,8 @@ void adjustRTC() {
     Serial.println(time_output);
     
     // save to RTC
-    RtcTime.Minutes = timeinfo.tm_min;
-    RtcTime.Seconds = timeinfo.tm_sec;
-    RtcTime.Hours = timeinfo.tm_hour;
-    RtcDate.Year = timeinfo.tm_year+1900;
-    RtcDate.Month = timeinfo.tm_mon+1;
-    RtcDate.Date = timeinfo.tm_mday;
-    RtcDate.WeekDay = timeinfo.tm_wday;
+    convertTimeToRTC(&RtcTime, timeinfo);
+    convertDateToRTC(&RtcDate, timeinfo);
     M5.rtc.SetTime(&RtcTime);
     M5.rtc.SetData(&RtcDate);
 }

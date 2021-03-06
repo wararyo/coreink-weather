@@ -1,3 +1,6 @@
+#ifndef _BATTERY_H_
+#define _BATTERY_H_
+
 #include <M5CoreInk.h>
 #include <esp_adc_cal.h>
 
@@ -30,3 +33,5 @@ int getBatCapacity(){
     }
     return cap;
 }
+
+#endif _BATTERY_H_
