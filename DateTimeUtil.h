@@ -35,4 +35,16 @@ void convertTimeToRTC(RTC_TimeTypeDef *RtcTime, tm time) {
     RtcTime->Hours = time.tm_hour;
 }
 
+// 日付の加算を行う
+// offset = 1 の時、翌日を取得
+void offsetDate(RTC_DateTypeDef *RtcDate, int offset = 1) {
+    // RTC_DateTypeDef -> tm -> time_t の順に変換、日付を加算し、逆の順序で戻す
+    tm date;
+    convertDateFromRTC(*RtcDate, &date);
+    time_t timestamp = mktime(&date);
+    timestamp += 86400 * offset; // 86400 = 60*60*24
+    date = *(localtime(&timestamp));
+    convertDateToRTC(RtcDate, date);
+}
+
 #endif _DATETIMEUTIL_H_
