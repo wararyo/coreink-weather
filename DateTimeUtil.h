@@ -20,6 +20,10 @@ void convertDateFromRTC(RTC_DateTypeDef RtcDate, tm *date) {
     date->tm_mon = RtcDate.Month - 1;
     date->tm_mday = RtcDate.Date;
     date->tm_wday = RtcDate.WeekDay;
+    date->tm_hour = 0;
+    date->tm_min = 0;
+    date->tm_sec = 0;
+    date->tm_isdst = -1;
 }
 
 void convertDateToRTC(RTC_DateTypeDef *RtcDate, tm date) {
