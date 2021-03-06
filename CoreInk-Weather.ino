@@ -15,8 +15,8 @@
 #include "images/lowbattery.h"
 #include "time.h"
 
-#define SHOW_LAST_UPDATED true // 天気を更新した時刻を表示するかどうか
-#define SHOW_BATTERY_CAPACITY true // 電池残量を表示するかどうか
+#define SHOW_LAST_UPDATED false // 天気を更新した時刻を表示するかどうか
+#define SHOW_BATTERY_CAPACITY false // 電池残量を表示するかどうか
 
 #define LOW_BATTERY_THRETHOLD 20 // バッテリー残量低下と判断するバッテリー残量 (0 - 100)
 
@@ -31,6 +31,8 @@ const int8_t boundaryOfDate = 18;
 // #define ADJUST_RTC_NTP
 
 const char* endpoint = "https://www.drk7.jp/weather/json/13.js";
+// 天気を取得する間隔(秒) 1 - 10800 の間で指定
+#define UPDATE_INTERVAL 10800
 const char* region = "東京地方";
 
 const char* NTP_SERVER = "ntp.nict.jp";
@@ -101,7 +103,7 @@ void setup() {
 void loop() {
     delay(1000);
     digitalWrite(LED_EXT_PIN,LOW);
-    M5.shutdown(10800);
+    M5.shutdown(UPDATE_INTERVAL);
 }
 
 DynamicJsonDocument getJson() {
