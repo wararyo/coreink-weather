@@ -32,7 +32,8 @@ const int8_t boundaryOfDate = 18;
 // #define ADJUST_RTC_NTP
 
 // 天気を取得する間隔(秒) 1 - 10800 の間で指定
-#define UPDATE_INTERVAL 10800
+// 気象庁から取得できるJSONの仕様を鑑みて、午前6時と午後6時に取得する方針に変更
+// #define UPDATE_INTERVAL 10800
 
 const char* endpoint = "https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json";
 const char* region = "東京地方";
@@ -102,12 +103,29 @@ void setup() {
 
     drawWeather(getWeatherOfDay(RtcDate));
     drawDate(dateToString(RtcDate));
+
+    delay(1000);
+
+    // 今が午前なら次は午後6時に、今が午後なら次は午前6時に起動
+    RTC_DateTypeDef RtcDateToWake;
+    RTC_TimeTypeDef RtcTimeToWake;
+    M5.rtc.GetTime(&RtcTimeToWake);
+    M5.rtc.GetData(&RtcDateToWake);
+    if(RtcTime.Hours < 12) {
+        RtcTimeToWake.Hours = 18;
+    }
+    else {
+        offsetDate(&RtcDateToWake, 1);
+        RtcTimeToWake.Hours = 6;
+    }
+    digitalWrite(LED_EXT_PIN,LOW);
+    M5.shutdown(RtcDateToWake,RtcTimeToWake);
 }
  
 void loop() {
+    // USBによる電源供給が行われている場合はShutdownしても電源が切れないが、
+    // RTCの設定は保持されている
     delay(1000);
-    digitalWrite(LED_EXT_PIN,LOW);
-    M5.shutdown(UPDATE_INTERVAL);
 }
 
 DynamicJsonDocument getJson() {
